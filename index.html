@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DC Drive Simulator</title>
+<style>
+*{
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    background: #111418;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.drive{
+    width: 420px;
+    padding: 35px 25px 30px;
+    background: linear-gradient(145deg, #78858e, #626e76);
+    border: 1px solid #8f9da6;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,.8), inset 0 1px 1px rgba(255,255,255,.4), inset 0 -2px 5px rgba(0,0,0,.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+}
+
+.display-frame {
+    width: 100%;
+    padding: 10px;
+    background: #202428;
+    border: 2px solid #14171a;
+    border-radius: 6px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,.9), 0 2px 4px rgba(255,255,255,.15);
+}
+.display {
+    height: 100px;
+    padding: 10px 12px;
+    background: linear-gradient(180deg, #cbe232 0%, #b3cd20 100%);
+    border: 3px inset #819121;
+    border-radius: 3px;
+    color: #121c00;
+    font-family: 'VT323', 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: normal;
+    letter-spacing: 1px;
+    line-height: 1.1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    box-shadow: inset 0 0 12px rgba(60,70,0,.6);
+    text-align: center;
+}
+
+.line{
+    width: 100%;
+    height: auto;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.keypad-container{
+    width: 250px;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.keypad-outer-ring{
+    width: 240px;
+    height: 240px;
+    padding: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8b97a0, #546068);
+    box-shadow: inset 0 3px 6px rgba(255,255,255,.5), inset 0 -4px 8px rgba(0,0,0,.6), 0 6px 12px rgba(0,0,0,.4);
+}
+.keypad-inner-recess{
+    width: 100%;
+    height: 100%;
+    padding: 6px;
+    position: relative;
+    border-radius: 50%;
+    background: #4e5961;
+    box-shadow: inset 0 4px 10px rgba(0,0,0,.8);
+}
+.keypad-svg{
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.6));
+}
+.keypad-border{
+    fill: none;
+    stroke: #101417;
+    stroke-width: 6;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+.key-sector{
+    fill: #252a2f;
+    stroke: #101316;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    cursor: pointer;
+    transition: transform .08s ease, filter .08s ease, fill .08s ease;
+    transform-origin: 100px 100px;
+}
+.key-sector:hover{ fill: #343b42; }
+.key-sector:active, .key-sector.active{ fill: #151719 !important; transform: scale(.97); }
+.key-symbol{
+    fill: #8a96a0;
+    font-size: 22px;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+    pointer-events: none;
+    user-select: none;
+    text-anchor: middle;
+    dominant-baseline: central;
+}
+.key-sector:active + .key-symbol, .key-sector.active + .key-symbol{ fill: #fff !important; }
+.center-dot{
+    fill: #4e5961;
+    stroke: #101417;
+    stroke-width: 4;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.55));
+}
+.title{ color: #ddd; text-align: center; font-size: 13px; letter-spacing: 2px; margin: 0; }
+.status{ text-align: center; color: #9aa7b0; font-size: 13px; margin: 0; }
+.brand-badge{
+    background: #d9d9d9;
+    border: 2px solid #b8c4ce;
+    border-radius: 3px;
+    padding: 3px 4px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    box-shadow: 0 2px 5px rgba(0,0,0,.2);
+}
+.brand-sprint,
+.brand-electric{
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.15;
+    font-weight: 900;
+    padding: 1px 5px;
+    white-space: nowrap;
+}
+.brand-sprint{
+    background: #171717;
+    letter-spacing: .2px;
+}
+.brand-electric{
+    background: #ed1c24;
+    letter-spacing: .2px;
+}
+
+@media (max-width: 480px) {
+    body { padding: 12px; }
+    .drive { width: min(420px, 100%); padding: 25px 16px 24px; gap: 24px; }
+}
+</style>
+</head>
+<body>
+<div class="drive">
+    <div class="title">Sprint DC Drive Simulator</div>
+
+    <div class="display-frame">
+        <div class="display">
+            <div class="line" id="line1"></div>
+            <div class="line" id="line2"></div>
+            <div class="line" id="line3"></div>
+        </div>
+    </div>
+
+    <div class="keypad-container">
+        <div class="keypad-outer-ring">
+            <div class="keypad-inner-recess">
+                <svg class="keypad-svg" viewBox="0 0 200 200" aria-label="Drive keypad">
+                    <circle class="keypad-border" cx="100" cy="100" r="95" />
+                    <g id="grpUp">
+                        <path id="btnUp" class="key-sector" d="M 31,31 A 95,95 0 0,1 169,31 L 100,100 Z" />
+                        <text x="100" y="42" class="key-symbol">▲</text>
+                    </g>
+                    <g id="grpRight">
+                        <path id="btnRight" class="key-sector" d="M 169,31 A 95,95 0 0,1 169,169 L 100,100 Z" />
+                        <text x="158" y="100" class="key-symbol">▶</text>
+                    </g>
+                    <g id="grpDown">
+                        <path id="btnDown" class="key-sector" d="M 169,169 A 95,95 0 0,1 31,169 L 100,100 Z" />
+                        <text x="100" y="158" class="key-symbol">▼</text>
+                    </g>
+                    <g id="grpLeft">
+                        <path id="btnLeft" class="key-sector" d="M 31,169 A 95,95 0 0,1 31,31 L 100,100 Z" />
+                        <text x="42" y="100" class="key-symbol">◀</text>
+                    </g>
+                    <circle cx="100" cy="100" r="28" class="center-dot" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="brand-badge" aria-label="Sprint Electric logo">
+        <span class="brand-sprint">SPRINT</span>
+        <span class="brand-electric">ELECTRIC</span>
+    </div>
+
+    <div class="status">Developed By Rahul Pandit</div>
+</div>
+<script>
+/* MENU DATA STRUCTURE */
+const menuTree = {
+    "PARAMETER SAVE": ["Save Parameter"],
+    "CHANGE PARAMETERS": {
+        "CALIBRATION": [
+            "2)RATED ARM AMPS", "3)CURRENT LIMIT (%)", "4)RATED FIELD AMPS", "5)BASE RATED RPM",
+            "6)DESIRED MAX RPM", "7)ZERO SPEED OFFSET", "8)MAX TACHO VOLTS", "9)SPEED FBK TYPE",
+            "ENCODER SCALING", "14)IR COMPENSATION", "15)FIELD CUR FB TRIM", "16)ARM VOLTS TRIM",
+            "17)ANALOG TACHO TRIM", "18)RATED ARM VOLTS", "19)EL1/2/3 RATED AC", "20)MOTOR 1,2 SELECT"
+        ],
+        "RUN MODE RAMPS": ["RAMP ACCEL TIME", "RAMP DECEL TIME", "RAMP HOLD ENABLE", "RAMP RESET ENABLE"],
+        "JOG CRAWL SLACK": ["JOG SPEED REF", "CRAWL SPEED REF", "SLACK TIME SET"],
+        "MOTORISED POT RAMP": ["M/POT ACCEL TIME", "M/POT DECEL TIME", "M/POT MIN LIMIT", "M/POT MAX LIMIT"],
+        "STOP MODE": ["STOP MODE SELECT", "COAST STOP EN", "REGEN STOP EN"],
+        "SPEED REF": ["MAIN SPEED REF", "AUX SPEED REF", "TRIM SPEED REF", "MAX SPEED LIMIT"],
+        "SPEED CONTROL": ["PROP GAIN (P)", "INT GAIN (I)", "DERIV GAIN (D)", "SPEED ERROR TRIM"],
+        "CURRENT CONTROL": ["ARM CUR LIMIT +", "ARM CUR LIMIT -", "CUR LOOP PROP GAIN", "CUR LOOP INT GAIN"],
+        "FIELD CONTROL": ["FIELD WEAKENING EN", "MIN FIELD CUR", "MAX FIELD CUR", "FLD CTRL GAIN"],
+        "ZERO INTLKS": ["ZERO SPEED INTLK", "ZERO CURR INTLK", "DRIVE READY INTLK"]
+    },
+   
+  
+/*sub menu Diagnostics*/
+      
+  "DIAGNOSTICS":
+  
+  
+  {
+        "170)DC KILOWATTS MON": "MONITOR",
+        "SPEED LOOP MONITOR": 
+          ["131)SPEED FBK MON", "123)TOTAL SPD REF MN", "124)SPEED DEMAND MON", "125)SPEED ERROR MON", "126)ARM VOLTS MON", "127)ARM VOLTS % MON", "128)BACK EMF % MON", "129)TACHO VOLTS MON", "130)MOTOR RPM MON", "132)ENCODER RPM MON"],
+       
+      "ARM I LOOP MONITOR": ["141)AT CURRENT LIMIT", "133)ARM CUR DEM MON", "134)ARM CUR % MON", "135)ARM CUR AMPS MON", "136)UPPER CUR LIM MN", "137)LOWER CUR LIM MN", "138)ACTUAL UPPER LIM", "139)ACTUAL LOWER LIM", "140)O/LOAD LIMIT MON"],
+        
+      "FLD I LOOP MONITOR": ["147)FIELD ACTIVE MON", "143)FIELD DEMAND MON", "144)FIELD CUR % MON", "145)FIELD CUR AMPS MON", "146)ANGLE OF ADVANCE"],
+        
+      "ANALOG IO MONITOR": ["161)AOP3 (T12) MON", "150)UIP2 (T2) MON", "151)UIP3 (T3) MON", "152)UIP4 (T4) MON", "153 to160)UIP5 to11 MON"],
+      
+      "DIGITAL IO MONITOR": ["169)RUNNING MODE MON", "162)UIP 23456789", "163)DIP 12341234 DIO", "164)DOP 123TRJSC CIP", "165) + ARM BRIDGE FLAG", "166)DRIVE START FLAG", "167)DRIVE RUN FLAG"],
+      
+      "BLOCK OP MONITOR": ["RESERVED FOR FUTURE", "21)RAMP OP MONITOR", "45)MP OP MONITOR", "192)REF XC MASTER MN", "401)SUMMER1 OP MON", "415)SUMMER2 OP MONITOR", "429)PID1 OP MONITOR", "452)PID2 OP MONITOR", "475)PROFILE Y OP MON", "483)DIAMETER OP MON", "494)TOTAL TENSION MN", "500)TORQUE DEMAND MN", "523)PRESET OP MON", "RESERVED FOR FUTURE", "560)LATCH OUTPUT MON", "568)FILTER1 OP MON", "573)FILTER2 OP MON", "578)COUNTER COUNT", "583)TMR ELAPSED TIME"],
+       
+      "169)EL1/2/3 RMS MON": "MONITOR"
+    },
+
+
+/*sub menu Motor Drive Alarms*/
+  
+    "MOTOR DRIVE ALARMS": ["DRIVE TRIP MESSAGE", "171)SPD TRIP ENABLE", "172)SPEED TRIP TOL", "173)FLD LOSS TRIP EN", "174)DOP SCCT TRIP EN", "175)MISSING PULSE EN", "176)REF EXCH TRIP EN", "177)OVERSPEED DELAY", "STALL TRIP MENU", "181)ACTIVE TRIP MON", "182)STORED TRIP MON", "183)EXT TRIP RESET"],
+
+  /*sub menu*/
+   
+  "SERIAL LINKS": {"RS232 PORT1": ["PORT1 COMMS LINK", "187)PORT1 BAUD RATE", "188)PORT1 FUNCTION", "PARAMETER EXCHANGE", "REFERENCE EXCHANGE"]},
+    /*sub menu*/
+    "DISPLAY FUNCTIONS": {"SOFTWARE VERSION.": "MONITOR", "REDUCED MENU ENABLE": "MONITOR", "PASSWORD CONTROL": ["ENTER PASSWORD", "ALTER PASSWORD"], "LANGUAGE SELECT": "MONITOR"},
+
+    /*sub menu*/
+  
+    "APPLICATION BLOCKS": [],
+  
+    /*sub menu*/
+  
+    "CONFIGURATION":
+      
+    {"CONFLICT HELP MENU": "MONITOR", "ENABLE GOTO, GETFROM": "MONITOR", "UNIVERSAL INPUTS": "MONITOR", "ANALOGUE OUTPUTS": "MONITOR", "DIGITAL INPUTS": "MONITOR", "DIGITAL IN/OUTPUTS": "MONITOR", "DIGITAL OUTPUTS": "MONITOR", "STAGING POSTS": "MONITOR", "SOFTWARE TERMINALS": "MONITOR", "JUMPER CONNECTIONS": "MONITOR", "BLOCK OP CONFIG": ["RESERVED FOR FUTURE", "RUN MODE RAMPS GOTO", "MOTORISED POT GOTO", "REF EXCH SLAVE GOTO", "SUMMER 1 GOTO", "SUMMER 2 GOTO", "PID 1 GOTO", "PID 2 GOTO", "PARAMETER PROFL GOTO", "DIAMETER CALC GOTO", "TAPER CALC GOTO", "T/COMP +CUR LIM GOTO", "T/COMP -CUR LIM GOTO", "PRESET SPEED GOTO", "LATCH GOTO", "FILTER1 GOTO", "FILTER2 GOTO", "BATCH COUNTER GOTO", "INTERVAL TIMER GOTO"], "FIELDBUS CONFIG": "MONITOR", "DRIVE PERSONALITY": "MONITOR"}
+};
+
+let navPath = [], idxPath = [], isStart = true, editMode = false, ratedArmAmps = 0, audioContext = null;
+function playButtonSound(){ try{ audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)(); if(audioContext.state==='suspended')audioContext.resume(); const o=audioContext.createOscillator(),g=audioContext.createGain(),n=audioContext.currentTime; o.type='square';o.frequency.setValueAtTime(650,n);o.frequency.exponentialRampToValueAtTime(180,n+.055);g.gain.setValueAtTime(.08,n);g.gain.exponentialRampToValueAtTime(.001,n+.055);o.connect(g);g.connect(audioContext.destination);o.start(n);o.stop(n+.055); }catch(error){} }
+
+
+
+
+
+  
+  function getCurrNode(){let node=menuTree;for(const key of navPath)node=node[key];return node;}
+function getCurrKeys(){const node=getCurrNode();return !node?[]:Array.isArray(node)?node:typeof node==='object'?Object.keys(node):[];}
+
+
+  
+function render(activeKey=null){if(activeKey){const el=document.getElementById(activeKey);if(el){el.classList.add('active');setTimeout(()=>el.classList.remove('active'),150);}}const l1=document.getElementById('line1'),l2=document.getElementById('line2'),l3=document.getElementById('line3');if(isStart){l1.textContent='PRESS RIGHT KEY FOR';l2.textContent='ENTRY MENU     LEVEL 1';l3.textContent='';return;}const titleLevel=navPath.length+1,itemLevel=titleLevel+1,keys=getCurrKeys(),currIdx=idxPath[idxPath.length-1]||0,currNode=getCurrNode();if(editMode){l1.textContent='RATED ARM AMPS';l2.textContent=String(ratedArmAmps).padStart(3,'0')+'.0 A     EDIT';return;}if(currNode==='MONITOR'){const parentName=navPath[navPath.length-2]||'DIAGNOSTICS',paramName=navPath[navPath.length-1];l1.textContent=parentName;l2.textContent=paramName+'     '+itemLevel;l3.textContent='0.00%';return;}l1.textContent=navPath.length===0?'ENTRY MENU     LEVEL 1':navPath[navPath.length-1].padEnd(20,' ').substring(0,20)+' '+titleLevel;l2.textContent=keys.length>0?keys[currIdx].padEnd(20,' ').substring(0,20)+(navPath.length<2?' '+itemLevel:''):'';l3.textContent='';}
+function keyUp(){if(isStart)return;if(editMode){ratedArmAmps=Math.min(999,ratedArmAmps+1);render('btnUp');return;}const keys=getCurrKeys();if(keys.length)idxPath[idxPath.length-1]=(idxPath[idxPath.length-1]-1+keys.length)%keys.length;render('btnUp');}
+function keyDown(){if(isStart)return;if(editMode){ratedArmAmps=Math.max(0,ratedArmAmps-1);render('btnDown');return;}const keys=getCurrKeys();if(keys.length)idxPath[idxPath.length-1]=(idxPath[idxPath.length-1]+1)%keys.length;render('btnDown');}
+function keyRight(){if(isStart){isStart=false;navPath=[];idxPath=[1];render('btnRight');return;}if(editMode)return;const keys=getCurrKeys(),currIdx=idxPath[idxPath.length-1];if(currIdx===undefined||!keys[currIdx]){render('btnRight');return;}const selectedKey=keys[currIdx],currentNode=getCurrNode(),nextNode=Array.isArray(currentNode)?currentNode[currIdx]:currentNode[selectedKey];if(Array.isArray(currentNode)&&selectedKey==='2)RATED ARM AMPS'){editMode=true;render('btnRight');return;}if(Array.isArray(nextNode)&&!nextNode.length)return;if(nextNode!==undefined&&nextNode!==null){navPath.push(selectedKey);idxPath.push(0);}render('btnRight');}
+function keyLeft(){if(isStart)return;if(editMode){editMode=false;render('btnLeft');return;}if(navPath.length){navPath.pop();idxPath.pop();}else isStart=true;render('btnLeft');}
+let holdTimer=null,holdDelayTimer=null;function stopHold(){if(holdDelayTimer!==null){clearTimeout(holdDelayTimer);holdDelayTimer=null;}if(holdTimer!==null){clearInterval(holdTimer);holdTimer=null;}}
+function addHoldButton(id,action){const button=document.getElementById(id);button.addEventListener('pointerdown',e=>{e.preventDefault();stopHold();playButtonSound();action();holdDelayTimer=setTimeout(()=>{holdTimer=setInterval(()=>{playButtonSound();action();},120);},800);button.setPointerCapture?.(e.pointerId);});['pointerup','pointercancel','pointerleave'].forEach(name=>button.addEventListener(name,stopHold));}
+addHoldButton('grpUp',keyUp);addHoldButton('grpDown',keyDown);addHoldButton('grpLeft',keyLeft);addHoldButton('grpRight',keyRight);
+document.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(e.key))e.preventDefault();if(e.key==='ArrowUp'){playButtonSound();keyUp();}else if(e.key==='ArrowDown'){playButtonSound();keyDown();}else if(e.key==='ArrowLeft'){playButtonSound();keyLeft();}else if(e.key==='ArrowRight'||e.key==='Enter'){playButtonSound();keyRight();}});render();
+</script>
+</body>
+</html>
