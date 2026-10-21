@@ -27,6 +27,7 @@
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     .app { width: min(1050px, 100%); margin: 0 auto; }
+    .sticky-top { position: sticky; top: 0; z-index: 10; background: linear-gradient(145deg, #f7fbff 0%, #eaf3ff 100%); }
     header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
     .header-copy { min-width: 0; }
     .live-clock { flex: 0 0 auto; margin-top: 4px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--blue); font-size: 13px; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 14px rgba(36, 99, 211, .08); }
@@ -34,9 +35,6 @@
     h1 { margin: 7px 0 5px; color: #123b70; font-size: clamp(27px, 4vw, 36px); letter-spacing: -.04em; }
     .subtitle { margin: 0; color: var(--muted); }
     .summary {
-      position: sticky;
-      top: 0;
-      z-index: 10;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 15px;
@@ -151,16 +149,17 @@
 </head>
 <body>
   <main class="app">
-    <header>
-      <div class="header-copy">
-        <div class="eyebrow">Personal finance</div>
-        <h1>Bank Balance Tracker</h1>
-        <p class="subtitle"></p>
-      </div>
-      <time class="live-clock" id="liveClock" aria-live="off"></time>
-    </header>
+    <div class="sticky-top">
+      <header>
+        <div class="header-copy">
+          <div class="eyebrow">Personal finance</div>
+          <h1>Bank Balance Tracker</h1>
+          <p class="subtitle"></p>
+        </div>
+        <time class="live-clock" id="liveClock" aria-live="off"></time>
+      </header>
 
-    <section class="summary" aria-label="Balance summary">
+      <section class="summary" aria-label="Balance summary">
       <article class="card">
         <div class="card-label"><span>Main Balance</span><span class="badge">₹</span></div>
         <div class="amount" id="mainBalance">₹0.00</div>
@@ -178,7 +177,8 @@
         <div class="amount" id="availableLimit">₹0.00</div>
         <small>Main balance − hold amount</small>
       </article>
-    </section>
+      </section>
+    </div>
 
     <section class="panel">
       <div class="table-wrap">
