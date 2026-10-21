@@ -16,9 +16,11 @@
       --bg: #edf5ff;
     }
     * { box-sizing: border-box; }
+    html, body { width: 100%; }
     body {
       margin: 0;
       min-height: 100vh;
+      overflow-x: hidden;
       padding: 36px 18px;
       background: linear-gradient(145deg, #f7fbff 0%, #eaf3ff 100%);
       color: var(--ink);
@@ -92,16 +94,24 @@
     @media (max-width: 760px) {
       header { gap: 10px; }
       .live-clock { font-size: 11px; padding: 8px; }
-      .summary { position: static; grid-template-columns: 1fr; gap: 10px; padding: 0; }
-      .summary .card:first-child { position: sticky; top: 0; z-index: 10; background: #fff; }
+      .summary { position: static; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0; }
+      .summary .card:first-child { position: static; }
       .card { min-height: 0; }
       form { grid-template-columns: 1fr 1fr; }
       form .field-type { grid-column: 1 / -1; }
       form button { grid-column: 1 / -1; }
     }
     @media (max-width: 600px) {
-      .table-wrap { overflow-x: visible; }
-      table, tbody { display: block; width: 100%; }
+      body { padding: 0; }
+      .app { width: min(100%, 420px); min-width: 0; min-height: 100vh; min-height: 100svh; margin: 0 auto; }
+      .summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+      .card { min-width: 0; padding: 10px 7px; border-radius: 12px; }
+      .card-label { align-items: flex-start; gap: 3px; font-size: 10px; }
+      .badge { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 7px; font-size: 12px; }
+      .hold-input { font-size: clamp(15px, 5vw, 21px); }
+      .amount { overflow-wrap: anywhere; font-size: clamp(14px, 4.5vw, 20px); }
+      .table-wrap { width: 100%; overflow-x: hidden; }
+      table, tbody { display: block; width: 100%; min-width: 0; }
       thead { display: none; }
       tbody tr {
         display: grid;
@@ -127,7 +137,7 @@
       .action-buttons { flex-wrap: wrap; }
     }
     @media (max-width: 430px) {
-      body { padding: 25px 12px; }
+      body { padding: 0; }
       header { flex-wrap: wrap; }
       .live-clock { margin-top: 0; }
       .panel { padding: 16px 12px; }
